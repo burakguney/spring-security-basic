@@ -20,23 +20,16 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-	
-    private final AuthenticationManager authenticationManager;
+
     private final AuthUserService userService;
 	
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
-        userService.registerUser(registerRequest.getUsername(), registerRequest.getPassword());
-        return ResponseEntity.ok("Kayıt başarılı");
+        return userService.registerUser(registerRequest);
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        return ResponseEntity.ok("Giriş Başarılı.");
+        return userService.loginUser(loginRequest);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,12 +15,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.burak.security.entity.AuthUser;
+import com.burak.security.repository.AuthUserRepository;
 import com.burak.security.service.AuthUserService;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
+	private final AuthUserRepository authUserRepository;
+	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf((csrf) -> csrf.disable())
@@ -32,14 +39,16 @@ public class SecurityConfiguration {
 	}
 
 	@Bean
-	UserDetailsService userDetailsService(AuthUserService userService) {
+	UserDetailsService userDetailsService() {
 		return username -> {
-			AuthUser user = userService.findByUsername(username);
+			AuthUser user = authUserRepository.findByUsername(username);
 			if (user == null) {
 				throw new UsernameNotFoundException("Kullanıcı bulunamadı: " + username);
 			}
-			return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
-					.password(user.getPassword()).authorities(user.getRole().toString()).build();
+			return User
+					.withUsername(user.getUsername())
+					.password(user.getPassword())
+					.authorities(user.getRole().toString()).build();
 		};
 	}
 
